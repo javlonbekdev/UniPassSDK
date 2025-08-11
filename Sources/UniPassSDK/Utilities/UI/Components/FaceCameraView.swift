@@ -26,12 +26,12 @@ class FaceCameraView: BaseView {
     
     var appear: Bool = false { didSet {
         label.isHidden = !appear
-        DispatchQueue.global(qos: .background).async { [self] in
-//            if appear {
-//                startTimer()
-//            } else {
-//                stopTimer()
-//            }
+        Task {
+            if appear {
+                startTimer()
+            } else {
+                stopTimer()
+            }
         }
     } }
     
@@ -60,12 +60,13 @@ class FaceCameraView: BaseView {
     func startTimer() {
         captureSession.startRunning()
         DispatchQueue.main.async {
-            self.timer = Timer.scheduledTimer(withTimeInterval: 0.4, repeats: true) { [weak self] _ in // change from 0.2 to 0.4
+            self.timer = Timer.scheduledTimer(withTimeInterval: 0.4, repeats: true) { [weak self] _ in
                 guard let self = self else { return }
-//                print("✅ Timer is running")
                 
-//                appear ? attendance?() : ()
-//                update?(faceRect.width * faceRect.height, headStatus)
+                Task { @MainActor in
+                    self.appear ? self.attendance?() : ()
+                    self.update?(self.faceRect.width * self.faceRect.height, self.headStatus)
+                }
             }
         }
     }
