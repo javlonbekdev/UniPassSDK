@@ -69,14 +69,5 @@ class BaseDialogView: BaseView {
         }
         indicator.layer.cornerRadius = 3
         indicator.backgroundColor = .systemBackground
-        
-//        dismiss.snp.makeConstraints { $0.top.trailing.equalToSuperview().inset(16); $0.width.height.equalTo(36) }
-//        dismiss.configuration = .filled()
-//        dismiss.configuration?.image = .cancel
-//        dismiss.imageView?.snp.makeConstraints { $0.edges.equalToSuperview() }
-//        dismiss.configuration?.baseForegroundColor = .customGray
-//        dismiss.configuration?.baseBackgroundColor = .dialogBack
-//        dismiss.configuration?.cornerStyle = .capsule
-//        dismiss.setCorner(.medium)
     }
 }

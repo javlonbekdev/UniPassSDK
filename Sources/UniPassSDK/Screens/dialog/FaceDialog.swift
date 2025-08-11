@@ -8,23 +8,26 @@
 import UIKit
 
 open class FaceDialog: UIViewController {
-    let dialog = FaceView()
+    open var subview = FaceView()
     
-    var completion: ((UIImage) -> ())?
+    open var completion: ((UIImage) -> ())?
     
     open override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        dialog.cameraView.appear = true
+        subview.cameraView.appear = true
     }
     
     open override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        dialog.cameraView.appear = false
+        subview.cameraView.appear = false
     }
     
     open override func viewDidLoad() {
         super.viewDidLoad()
-        dialog.completion = { [weak self] image in
+        view.addSubview(subview)
+        subview.snp.makeConstraints { $0.edges.equalToSuperview() }
+        
+        subview.completion = { [weak self] image in
             self?.dismiss(animated: true)
             guard let image else { return }
             self?.completion?(image)
