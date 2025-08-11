@@ -14,7 +14,7 @@ open class FaceView: UIView {
     let dismissBack = UIButton()
     let back = UIView()
     
-    let scroll = UIScrollView()
+    open var scroll = UIScrollView()
     let stack = UIStackView()
     
     let indicator = UIView()
