@@ -7,21 +7,22 @@
 
 import UIKit
 
-class FaceDialog: BaseDialog<FaceView> {
+open class FaceDialog: UIViewController {
+    let dialog = FaceView()
     
     var completion: ((UIImage) -> ())?
     
-    override func viewDidAppear(_ animated: Bool) {
+    open override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         dialog.cameraView.appear = true
     }
     
-    override func viewWillDisappear(_ animated: Bool) {
+    open override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         dialog.cameraView.appear = false
     }
     
-    override func viewDidLoad() {
+    open override func viewDidLoad() {
         super.viewDidLoad()
         dialog.completion = { [weak self] image in
             self?.dismiss(animated: true)
