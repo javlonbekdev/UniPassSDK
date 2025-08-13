@@ -14,16 +14,18 @@ open class FaceDialog: UIViewController {
     
     open override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        subview.cameraView.appear = true
+        subview.cameraView.startTimer()
     }
     
     open override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        subview.cameraView.appear = false
+        subview.cameraView.stopTimer()
     }
     
     open override func viewDidLoad() {
         super.viewDidLoad()
+        preferredContentSize = UIScreen.main.bounds.size
+        
         view.addSubview(subview)
         subview.snp.makeConstraints { $0.edges.equalToSuperview() }
         

@@ -17,25 +17,15 @@ class FaceCameraView: BaseView {
     var timer: Timer?
     var photo: UIImage?
     var cropImage: UIImage?
-    let label = UILabel()
     
     var attendance: (() -> ())?
     var update: ((Double, HeadStatus) -> ())?
     
     var headStatus: HeadStatus = .normal
     
-    var appear: Bool = false { didSet {
-        label.isHidden = !appear
-        Task {
-            if appear {
-                startTimer()
-            } else {
-                stopTimer()
-            }
-        }
-    } }
-    
-    private var captureSession = AVCaptureSession()
+    private let captureSession = AVCaptureSession()
+    private let sessionQueue = DispatchQueue(label: "camera.session.queue",
+                                               qos: .userInitiated)
     private lazy var previewLayer = AVCaptureVideoPreviewLayer(session: self.captureSession)
     private let videoDataOutput = AVCaptureVideoDataOutput()
     private let photoDataOutput = AVCapturePhotoOutput()
@@ -49,34 +39,35 @@ class FaceCameraView: BaseView {
         snp.makeConstraints { $0.width.height.equalTo((isPhone ? 4 : 3) * screenSize.width / 5) }
         setupCamera()
         previewLayer.frame = .init(x: 0, y: 0, width: cameraWidth, height: cameraWidth)
-        addSubview(label)
-        label.text = " "
-        label.textColor = .white
-        label.font = .systemFont(ofSize: 13, weight: .semibold)
-        label.textAlignment = .center
-        label.isHidden = true
     }
     
-    func startTimer() {
-        captureSession.startRunning()
-        DispatchQueue.main.async {
-            self.timer = Timer.scheduledTimer(withTimeInterval: 0.4, repeats: true) { [weak self] _ in
-                guard let self = self else { return }
-                
-                Task { @MainActor in
-                    self.appear ? self.attendance?() : ()
-                    self.update?(self.faceRect.width * self.faceRect.height, self.headStatus)
-                }
+    open func startTimer() {
+        DispatchQueue.global(qos: .background).async { [captureSession] in
+            captureSession.startRunning()
+            DispatchQueue.main.async { [weak self] in
+                self?.setupTimer()
             }
         }
     }
     
-    func stopTimer() {
-        captureSession.stopRunning()
-        DispatchQueue.main.async {
-            self.timer?.invalidate()
-            self.timer = nil
-//            print("⛔️ Timer stopped")
+    func setupTimer() {
+        self.timer = Timer.scheduledTimer(withTimeInterval: 0.4, repeats: true) { _ in // change from 0.2 to 0.4
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+                
+                self.captureSession.isRunning ? self.attendance?() : ()
+                self.update?(self.faceRect.width * self.faceRect.height, self.headStatus)
+            }
+        }
+    }
+    
+    open func stopTimer() {
+        DispatchQueue.global(qos: .background).async { [captureSession] in
+            captureSession.stopRunning()
+            DispatchQueue.main.async { [weak self] in
+                self?.timer?.invalidate()
+                self?.timer = nil
+            }
         }
     }
     
@@ -86,7 +77,6 @@ class FaceCameraView: BaseView {
             if let deviceInput = try? AVCaptureDeviceInput(device: device) {
                 if captureSession.canAddInput(deviceInput) {
                     captureSession.addInput(deviceInput)
-                    
                     setupPreview()
                 }
             }
@@ -179,15 +169,6 @@ extension FaceCameraView: AVCapturePhotoCaptureDelegate, @preconcurrency AVCaptu
 
             // Yuzni ekrandagi joylashuvini hisoblash
             let faceRectConverted = previewLayer.layerRectConverted(fromMetadataOutputRect: observation.boundingBox)
-
-            // 📌 Yangi UILabel yaratish
-            label.isHidden = faceRectConverted.minX <= 0 || faceRectConverted.minY <= 0 || faceRectConverted.maxY >= (isPhone ? 4 : 3) * screenSize.width / 5 || faceRectConverted.maxX >= (isPhone ? 4 : 3) * screenSize.width / 5
-            label.frame = CGRect(
-                x: faceRectConverted.midX - 50,
-                y: faceRectConverted.minY - 25,  // Yuzning yuqorisiga joylashtirish
-                width: 120,
-                height: 20
-            )
                 
 
             // Yangi `CAShapeLayer` yaratish
@@ -255,5 +236,4 @@ extension FaceCameraView: AVCapturePhotoCaptureDelegate, @preconcurrency AVCaptu
         return points.map { $0.y }.reduce(0, +) / CGFloat(points.count)
     }
 }
-
 
