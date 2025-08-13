@@ -42,12 +42,12 @@ class FaceCameraView: BaseView {
     }
     
     open func startTimer() {
-        DispatchQueue.global(qos: .background).async { [captureSession] in
+//        DispatchQueue.global(qos: .background).async { [weak self] in
             captureSession.startRunning()
             DispatchQueue.main.async { [weak self] in
                 self?.setupTimer()
             }
-        }
+//        }
     }
     
     func setupTimer() {
@@ -62,13 +62,13 @@ class FaceCameraView: BaseView {
     }
     
     open func stopTimer() {
-        DispatchQueue.global(qos: .background).async { [captureSession] in
+//        DispatchQueue.global(qos: .background).async { [captureSession] in
             captureSession.stopRunning()
             DispatchQueue.main.async { [weak self] in
                 self?.timer?.invalidate()
                 self?.timer = nil
             }
-        }
+//        }
     }
     
     private func setupCamera() {
