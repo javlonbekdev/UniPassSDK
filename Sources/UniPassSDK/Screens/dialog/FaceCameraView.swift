@@ -8,7 +8,6 @@
 import UIKit
 import Vision
 import AVFoundation
-import SnapKit
 
 class FaceCameraView: BaseView {
     
@@ -24,7 +23,7 @@ class FaceCameraView: BaseView {
     
     var headStatus: HeadStatus = .normal
     
-    public let captureSession = AVCaptureSession()
+    private let captureSession = AVCaptureSession()
     private let sessionQueue = DispatchQueue(label: "camera.session.queue",
                                                qos: .userInitiated)
     private lazy var previewLayer = AVCaptureVideoPreviewLayer(session: self.captureSession)
@@ -42,22 +41,18 @@ class FaceCameraView: BaseView {
         previewLayer.frame = .init(x: 0, y: 0, width: cameraWidth, height: cameraWidth)
     }
     
+    @MainActor
     open func startTimer() {
-        sessionQueue.async { [weak self] in
-            self?.captureSession.startRunning()
-            DispatchQueue.main.async { [weak self] in
-                self?.setupTimer()
-            }
-        }
-    }
-
-    func stopTimer() {
-        sessionQueue.async { [weak self] in
-            self?.captureSession.stopRunning()
-            DispatchQueue.main.async { [weak self] in
-                self?.timer?.invalidate()
-                self?.timer = nil
-            }
+        Task {
+            // Main actor'dan background'ga o'tish
+            await Task.detached {
+                await MainActor.run {
+                    self.captureSession.startRunning()
+                }
+            }.value
+            
+            // Timer'ni main thread'da setup qilish
+//            self.setupTimer()
         }
     }
     
@@ -68,6 +63,16 @@ class FaceCameraView: BaseView {
                 
                 self.captureSession.isRunning ? self.attendance?() : ()
                 self.update?(self.faceRect.width * self.faceRect.height, self.headStatus)
+            }
+        }
+    }
+    
+    open func stopTimer() {
+        DispatchQueue.global(qos: .background).async { [captureSession] in
+            captureSession.stopRunning()
+            DispatchQueue.main.async { [weak self] in
+                self?.timer?.invalidate()
+                self?.timer = nil
             }
         }
     }
