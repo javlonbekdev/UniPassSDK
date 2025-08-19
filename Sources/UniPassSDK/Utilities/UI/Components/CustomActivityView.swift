@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import SnapKit
 
 class CustomActivityView: BaseView {
     let activityView = UIView()

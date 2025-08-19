@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import SnapKit
 
 class BaseDialog<sub: BaseDialogView>: BaseViewController {
     var screenSize: CGSize { UIScreen.main.bounds.size }

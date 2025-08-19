@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import SnapKit
 
 open class FaceDialog: UIViewController {
     open var subview = FaceView()

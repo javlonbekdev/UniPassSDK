@@ -8,6 +8,7 @@
 import UIKit
 import Vision
 import AVFoundation
+import SnapKit
 
 class FaceCameraView: BaseView {
     
@@ -41,13 +42,19 @@ class FaceCameraView: BaseView {
         previewLayer.frame = .init(x: 0, y: 0, width: cameraWidth, height: cameraWidth)
     }
     
+    @MainActor
     open func startTimer() {
-//        DispatchQueue.global(qos: .background).async { [weak self] in
-            captureSession.startRunning()
-            DispatchQueue.main.async { [weak self] in
-                self?.setupTimer()
-            }
-//        }
+        Task {
+            // Main actor'dan background'ga o'tish
+            await Task.detached {
+                await MainActor.run {
+                    self.captureSession.startRunning()
+                }
+            }.value
+            
+            // Timer'ni main thread'da setup qilish
+            self.setupTimer()
+        }
     }
     
     func setupTimer() {
@@ -62,13 +69,11 @@ class FaceCameraView: BaseView {
     }
     
     open func stopTimer() {
-//        DispatchQueue.global(qos: .background).async { [captureSession] in
+        Task { @MainActor in
             captureSession.stopRunning()
-            DispatchQueue.main.async { [weak self] in
-                self?.timer?.invalidate()
-                self?.timer = nil
-            }
-//        }
+            timer?.invalidate()
+            timer = nil
+        }
     }
     
     private func setupCamera() {

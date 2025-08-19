@@ -5,7 +5,7 @@
 //  Created by Javlonbek Dev on 08/08/25.
 //
 import UIKit
-
+import SnapKit
 
 class BaseViewController: UIViewController {
     var activity: CustomActivityView? = CustomActivityView()

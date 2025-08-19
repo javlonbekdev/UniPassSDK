@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import SnapKit
 
 class IconLabelView: BaseView {
     let stack = UIStackView()

@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import SnapKit
 
 open class FaceView: UIView {
     var isPhone: Bool { UIDevice.current.userInterfaceIdiom == .phone }
