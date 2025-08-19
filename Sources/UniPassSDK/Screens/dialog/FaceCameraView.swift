@@ -7,8 +7,9 @@
 
 import UIKit
 import Vision
-import AVFoundation
+@preconcurrency import AVFoundation
 
+@MainActor
 class FaceCameraView: BaseView {
     
     let cameraWidth = UIScreen.main.bounds.width * (UIDevice.current.userInterfaceIdiom == .phone ? 4 : 3) / 5
@@ -41,18 +42,19 @@ class FaceCameraView: BaseView {
         previewLayer.frame = .init(x: 0, y: 0, width: cameraWidth, height: cameraWidth)
     }
     
-    @MainActor
     open func startTimer() {
-        Task {
-            // Main actor'dan background'ga o'tish
-            await Task.detached {
-                await MainActor.run {
-                    self.captureSession.startRunning()
-                }
-            }.value
-            
-            // Timer'ni main thread'da setup qilish
-//            self.setupTimer()
+        Task.detached {
+            await self.captureSession.startRunning()
+        }
+    }
+    
+    open func stopTimer() {
+        DispatchQueue.global(qos: .background).async { [captureSession] in
+            captureSession.stopRunning()
+            DispatchQueue.main.async { [weak self] in
+                self?.timer?.invalidate()
+                self?.timer = nil
+            }
         }
     }
     
@@ -63,16 +65,6 @@ class FaceCameraView: BaseView {
                 
                 self.captureSession.isRunning ? self.attendance?() : ()
                 self.update?(self.faceRect.width * self.faceRect.height, self.headStatus)
-            }
-        }
-    }
-    
-    open func stopTimer() {
-        DispatchQueue.global(qos: .background).async { [captureSession] in
-            captureSession.stopRunning()
-            DispatchQueue.main.async { [weak self] in
-                self?.timer?.invalidate()
-                self?.timer = nil
             }
         }
     }
