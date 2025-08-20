@@ -126,39 +126,39 @@ extension FaceCameraView: AVCapturePhotoCaptureDelegate, @preconcurrency AVCaptu
     
     func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
         
-//        guard let imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
-//        
-//        // Vision processing'ni background'da qilish
-//        let borderHandler = VNImageRequestHandler(cvPixelBuffer: imageBuffer, orientation: .leftMirrored)
-//        
-//        let faceDetectionRequest = VNDetectFaceLandmarksRequest { [weak self] request, error in
-//            guard let self = self else { return }
-//            
-//            // Main thread'ga o'tish UI update uchun
-//            DispatchQueue.main.async {
-//                self.processFaceDetectionResults(request: request, buffer: sampleBuffer)
-//            }
-//        }
+        guard let imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
         
-//        let imageHandler = VNImageRequestHandler(cvPixelBuffer: imageBuffer, orientation: .up, options: [:])
-//        let faceRectRequest = VNDetectFaceRectanglesRequest { [weak self] request, error in
-//            guard let self = self else { return }
-//            
-//            if let results = request.results as? [VNFaceObservation], let face = results.first {
-//                // Background'da image processing
-//                self.processImageExtraction(imageBuffer: imageBuffer, observation: face)
-//            }
-//        }
-//        
-//        // Vision request'larni background'da bajarish
-//        DispatchQueue.global(qos: .userInitiated).async {
-//            do {
-//                try borderHandler.perform([faceDetectionRequest])
-//                try imageHandler.perform([faceRectRequest])
-//            } catch {
-//                print("Vision error: \(error.localizedDescription)")
-//            }
-//        }
+        // Vision processing'ni background'da qilish
+        let borderHandler = VNImageRequestHandler(cvPixelBuffer: imageBuffer, orientation: .leftMirrored)
+        
+        let faceDetectionRequest = VNDetectFaceLandmarksRequest { [weak self] request, error in
+            guard let self = self else { return }
+            
+            // Main thread'ga o'tish UI update uchun
+            DispatchQueue.main.async {
+                self.processFaceDetectionResults(request: request, buffer: sampleBuffer)
+            }
+        }
+        
+        let imageHandler = VNImageRequestHandler(cvPixelBuffer: imageBuffer, orientation: .up, options: [:])
+        let faceRectRequest = VNDetectFaceRectanglesRequest { [weak self] request, error in
+            guard let self = self else { return }
+            
+            if let results = request.results as? [VNFaceObservation], let face = results.first {
+                // Background'da image processing
+                self.processImageExtraction(imageBuffer: imageBuffer, observation: face)
+            }
+        }
+        
+        // Vision request'larni background'da bajarish
+        DispatchQueue.global(qos: .userInitiated).async {
+            do {
+                try borderHandler.perform([faceDetectionRequest])
+                try imageHandler.perform([faceRectRequest])
+            } catch {
+                print("Vision error: \(error.localizedDescription)")
+            }
+        }
     }
     
     // Main thread'da UI update qilish uchun alohida metod
