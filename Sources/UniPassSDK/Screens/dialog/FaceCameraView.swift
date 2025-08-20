@@ -116,6 +116,8 @@ class FaceCameraView: UIView {
                 captureSession.addOutput(photoDataOutput)
             }
         
+        print("start setupPreview")
+        
         let videoConnection = videoDataOutput.connection(with: .video)
         videoConnection?.videoOrientation = .portrait
     }
@@ -125,7 +127,7 @@ class FaceCameraView: UIView {
 extension FaceCameraView: AVCapturePhotoCaptureDelegate, @preconcurrency AVCaptureVideoDataOutputSampleBufferDelegate {
     
     func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
-        
+        print("start captureOutput")
         guard let imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
         
         // Vision processing'ni background'da qilish
