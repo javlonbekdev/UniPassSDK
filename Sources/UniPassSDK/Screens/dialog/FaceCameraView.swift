@@ -106,11 +106,15 @@ class FaceCameraView: UIView {
         previewLayer.videoGravity = .resizeAspectFill
         layer.addSublayer(previewLayer)
         
-        videoDataOutput.videoSettings = [kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA]
+//        videoDataOutput.videoSettings = [kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA]
+//        
+//        videoDataOutput.setSampleBufferDelegate(self, queue: DispatchQueue(label: "camera queue"))
+//        captureSession.addOutput(videoDataOutput)
+//        captureSession.addOutput(photoDataOutput)
         
-        videoDataOutput.setSampleBufferDelegate(self, queue: DispatchQueue(label: "camera queue"))
-        captureSession.addOutput(videoDataOutput)
-        captureSession.addOutput(photoDataOutput)
+        if captureSession.canAddOutput(photoDataOutput) {
+                captureSession.addOutput(photoDataOutput)
+            }
         
         let videoConnection = videoDataOutput.connection(with: .video)
         videoConnection?.videoOrientation = .portrait
