@@ -42,7 +42,7 @@ class FaceCameraView: BaseView {
         previewLayer.frame = .init(x: 0, y: 0, width: cameraWidth, height: cameraWidth)
     }
     
-    open func startTimer() {
+    func startTimer() async {
         Task.detached {
             await self.captureSession.startRunning()
         }
