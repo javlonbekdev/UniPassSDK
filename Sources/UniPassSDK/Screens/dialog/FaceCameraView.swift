@@ -7,10 +7,12 @@
 
 import UIKit
 import Vision
+import SnapKit
 @preconcurrency import AVFoundation
 
-@MainActor
-class FaceCameraView: BaseView {
+//@MainActor
+class FaceCameraView: UIView {
+    var isPhone: Bool { UIDevice.current.userInterfaceIdiom == .phone }
     
     let cameraWidth = UIScreen.main.bounds.width * (UIDevice.current.userInterfaceIdiom == .phone ? 4 : 3) / 5
     
@@ -36,17 +38,45 @@ class FaceCameraView: BaseView {
     var faceRect = CGRect()
     var faceRectLayerConverted = CGRect()
     
-    override func setView() {
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        
         snp.makeConstraints { $0.width.height.equalTo((isPhone ? 4 : 3) * screenSize.width / 5) }
         setupCamera()
         previewLayer.frame = .init(x: 0, y: 0, width: cameraWidth, height: cameraWidth)
     }
     
-    func startTimer() async {
-        Task.detached {
-            await self.captureSession.startRunning()
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    func startTimer() {
+        Task { [weak self] in
+            guard let self = self else { return }
+            
+            let session = await MainActor.run { self.captureSession }
+            
+            await withCheckedContinuation { continuation in
+                sessionQueue.async {
+                    session.startRunning()
+                    continuation.resume()
+                }
+            }
+            
+//            await MainActor.run {
+//                self.setupTimer()
+//            }
         }
     }
+
+//    private func startCaptureSession() async {
+//        await withCheckedContinuation { continuation in
+//            sessionQueue.async { [weak self] in
+//                self?.captureSession.startRunning() // sync metod, await yo'q!
+//                continuation.resume()
+//            }
+//        }
+//    }
     
 //    open func stopTimer() {
 //        DispatchQueue.global(qos: .background).async { [captureSession] in

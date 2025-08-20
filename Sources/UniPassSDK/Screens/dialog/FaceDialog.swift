@@ -15,9 +15,7 @@ open class FaceDialog: UIViewController {
     
     open override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        Task {
-            await subview.cameraView.startTimer()
-        }
+        subview.cameraView.startTimer()
     }
     
     open override func viewWillDisappear(_ animated: Bool) {
