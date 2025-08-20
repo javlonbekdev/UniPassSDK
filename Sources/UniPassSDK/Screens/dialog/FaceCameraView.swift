@@ -136,25 +136,25 @@ extension FaceCameraView: AVCapturePhotoCaptureDelegate, @preconcurrency AVCaptu
             }
         }
         
-        let imageHandler = VNImageRequestHandler(cvPixelBuffer: imageBuffer, orientation: .up, options: [:])
-        let faceRectRequest = VNDetectFaceRectanglesRequest { [weak self] request, error in
-            guard let self = self else { return }
-            
-            if let results = request.results as? [VNFaceObservation], let face = results.first {
-                // Background'da image processing
-                self.processImageExtraction(imageBuffer: imageBuffer, observation: face)
-            }
-        }
-        
-        // Vision request'larni background'da bajarish
-        DispatchQueue.global(qos: .userInitiated).async {
-            do {
-                try borderHandler.perform([faceDetectionRequest])
-                try imageHandler.perform([faceRectRequest])
-            } catch {
-                print("Vision error: \(error.localizedDescription)")
-            }
-        }
+//        let imageHandler = VNImageRequestHandler(cvPixelBuffer: imageBuffer, orientation: .up, options: [:])
+//        let faceRectRequest = VNDetectFaceRectanglesRequest { [weak self] request, error in
+//            guard let self = self else { return }
+//            
+//            if let results = request.results as? [VNFaceObservation], let face = results.first {
+//                // Background'da image processing
+//                self.processImageExtraction(imageBuffer: imageBuffer, observation: face)
+//            }
+//        }
+//        
+//        // Vision request'larni background'da bajarish
+//        DispatchQueue.global(qos: .userInitiated).async {
+//            do {
+//                try borderHandler.perform([faceDetectionRequest])
+//                try imageHandler.perform([faceRectRequest])
+//            } catch {
+//                print("Vision error: \(error.localizedDescription)")
+//            }
+//        }
     }
     
     // Main thread'da UI update qilish uchun alohida metod
