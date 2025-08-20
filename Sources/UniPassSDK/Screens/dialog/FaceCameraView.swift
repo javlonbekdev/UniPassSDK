@@ -42,7 +42,7 @@ class FaceCameraView: UIView {
         super.init(frame: frame)
         
         snp.makeConstraints { $0.width.height.equalTo((isPhone ? 4 : 3) * screenSize.width / 5) }
-//        setupCamera()
+        setupCamera()
         previewLayer.frame = .init(x: 0, y: 0, width: cameraWidth, height: cameraWidth)
     }
     
@@ -99,35 +99,35 @@ class FaceCameraView: UIView {
 //        }
 //    }
     
-//    private func setupCamera() {
-//        let deviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInWideAngleCamera], mediaType: .video, position: .front)
-//        if let device = deviceDiscoverySession.devices.first {
-//            if let deviceInput = try? AVCaptureDeviceInput(device: device) {
-//                if captureSession.canAddInput(deviceInput) {
-//                    captureSession.addInput(deviceInput)
-//                    setupPreview()
-//                }
-//            }
-//        }
-//    }
+    private func setupCamera() {
+        let deviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInWideAngleCamera], mediaType: .video, position: .front)
+        if let device = deviceDiscoverySession.devices.first {
+            if let deviceInput = try? AVCaptureDeviceInput(device: device) {
+                if captureSession.canAddInput(deviceInput) {
+                    captureSession.addInput(deviceInput)
+                    setupPreview()
+                }
+            }
+        }
+    }
 //    
-//    private func setupPreview() {
-//        previewLayer.videoGravity = .resizeAspectFill
-//        layer.addSublayer(previewLayer)
-//        
-//        videoDataOutput.videoSettings = [kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA]
-//        
-//        videoDataOutput.setSampleBufferDelegate(self, queue: DispatchQueue(label: "camera queue"))
-//        captureSession.addOutput(videoDataOutput)
-//        captureSession.addOutput(photoDataOutput)
-//        
-//        let videoConnection = videoDataOutput.connection(with: .video)
-//        videoConnection?.videoOrientation = .portrait
-//    }
+    private func setupPreview() {
+        previewLayer.videoGravity = .resizeAspectFill
+        layer.addSublayer(previewLayer)
+        
+        videoDataOutput.videoSettings = [kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA]
+        
+        videoDataOutput.setSampleBufferDelegate(self, queue: DispatchQueue(label: "camera queue"))
+        captureSession.addOutput(videoDataOutput)
+        captureSession.addOutput(photoDataOutput)
+        
+        let videoConnection = videoDataOutput.connection(with: .video)
+        videoConnection?.videoOrientation = .portrait
+    }
 }
 
 
-//extension FaceCameraView: AVCapturePhotoCaptureDelegate, @preconcurrency AVCaptureVideoDataOutputSampleBufferDelegate {
+extension FaceCameraView: AVCapturePhotoCaptureDelegate, AVCaptureVideoDataOutputSampleBufferDelegate {
 //    
 //    func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
 //
@@ -263,5 +263,5 @@ class FaceCameraView: UIView {
 //        guard !points.isEmpty else { return 0 }
 //        return points.map { $0.y }.reduce(0, +) / CGFloat(points.count)
 //    }
-//}
+}
 
