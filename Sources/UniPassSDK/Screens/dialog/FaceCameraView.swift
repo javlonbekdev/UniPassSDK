@@ -63,41 +63,30 @@ class FaceCameraView: UIView {
                 }
             }
             
-//            await MainActor.run {
-//                self.setupTimer()
-//            }
+            self.setupTimer()
         }
     }
-
-//    private func startCaptureSession() async {
-//        await withCheckedContinuation { continuation in
-//            sessionQueue.async { [weak self] in
-//                self?.captureSession.startRunning() // sync metod, await yo'q!
-//                continuation.resume()
-//            }
-//        }
-//    }
     
-//    open func stopTimer() {
-//        DispatchQueue.global(qos: .background).async { [captureSession] in
-//            captureSession.stopRunning()
-//            DispatchQueue.main.async { [weak self] in
-//                self?.timer?.invalidate()
-//                self?.timer = nil
-//            }
-//        }
-//    }
-//    
-//    func setupTimer() {
-//        self.timer = Timer.scheduledTimer(withTimeInterval: 0.4, repeats: true) { _ in // change from 0.2 to 0.4
-//            DispatchQueue.main.async { [weak self] in
-//                guard let self = self else { return }
-//                
-//                self.captureSession.isRunning ? self.attendance?() : ()
-//                self.update?(self.faceRect.width * self.faceRect.height, self.headStatus)
-//            }
-//        }
-//    }
+    open func stopTimer() {
+        DispatchQueue.global(qos: .background).async { [captureSession] in
+            captureSession.stopRunning()
+            DispatchQueue.main.async { [weak self] in
+                self?.timer?.invalidate()
+                self?.timer = nil
+            }
+        }
+    }
+    
+    func setupTimer() {
+        self.timer = Timer.scheduledTimer(withTimeInterval: 0.4, repeats: true) { _ in // change from 0.2 to 0.4
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+                
+                self.captureSession.isRunning ? self.attendance?() : ()
+                self.update?(self.faceRect.width * self.faceRect.height, self.headStatus)
+            }
+        }
+    }
     
     private func setupCamera() {
         let deviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInWideAngleCamera], mediaType: .video, position: .front)

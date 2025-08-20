@@ -20,7 +20,7 @@ open class FaceDialog: UIViewController {
     
     open override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-//        subview.cameraView.stopTimer()
+        subview.cameraView.stopTimer()
     }
     
     open override func viewDidLoad() {
