@@ -122,19 +122,19 @@ extension FaceCameraView: AVCapturePhotoCaptureDelegate, @preconcurrency AVCaptu
     
     func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
         
-        guard let imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
-        
-        // Vision processing'ni background'da qilish
-        let borderHandler = VNImageRequestHandler(cvPixelBuffer: imageBuffer, orientation: .leftMirrored)
-        
-        let faceDetectionRequest = VNDetectFaceLandmarksRequest { [weak self] request, error in
-            guard let self = self else { return }
-            
-            // Main thread'ga o'tish UI update uchun
-            DispatchQueue.main.async {
-                self.processFaceDetectionResults(request: request, buffer: sampleBuffer)
-            }
-        }
+//        guard let imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
+//        
+//        // Vision processing'ni background'da qilish
+//        let borderHandler = VNImageRequestHandler(cvPixelBuffer: imageBuffer, orientation: .leftMirrored)
+//        
+//        let faceDetectionRequest = VNDetectFaceLandmarksRequest { [weak self] request, error in
+//            guard let self = self else { return }
+//            
+//            // Main thread'ga o'tish UI update uchun
+//            DispatchQueue.main.async {
+//                self.processFaceDetectionResults(request: request, buffer: sampleBuffer)
+//            }
+//        }
         
 //        let imageHandler = VNImageRequestHandler(cvPixelBuffer: imageBuffer, orientation: .up, options: [:])
 //        let faceRectRequest = VNDetectFaceRectanglesRequest { [weak self] request, error in
@@ -158,7 +158,7 @@ extension FaceCameraView: AVCapturePhotoCaptureDelegate, @preconcurrency AVCaptu
     }
     
     // Main thread'da UI update qilish uchun alohida metod
-    @MainActor
+//    @MainActor
     private func processFaceDetectionResults(request: VNRequest, buffer: CMSampleBuffer) {
         // UI elementlarni tozalash
         faceLayers.forEach { $0.removeFromSuperlayer() }
