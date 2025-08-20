@@ -10,7 +10,6 @@ import Vision
 import SnapKit
 @preconcurrency import AVFoundation
 
-//@MainActor
 class FaceCameraView: UIView {
     var isPhone: Bool { UIDevice.current.userInterfaceIdiom == .phone }
     
@@ -33,7 +32,6 @@ class FaceCameraView: UIView {
     private let videoDataOutput = AVCaptureVideoDataOutput()
     private let photoDataOutput = AVCapturePhotoOutput()
     private var faceLayers: [CAShapeLayer] = []
-//    var label = UILabel()
     
     var faceRect = CGRect()
     var faceRectLayerConverted = CGRect()
@@ -51,20 +49,24 @@ class FaceCameraView: UIView {
     }
     
     func startTimer() {
-        Task { [weak self] in
-            guard let self = self else { return }
-            
-            let session = await MainActor.run { self.captureSession }
-            
-            await withCheckedContinuation { continuation in
-                sessionQueue.async {
-                    session.startRunning()
-                    continuation.resume()
-                }
-            }
-            
-            self.setupTimer()
+        Task.detached {
+            await self.captureSession.startRunning()
         }
+        self.setupTimer()
+//        Task { [weak self] in
+//            guard let self = self else { return }
+//            
+//            let session = await MainActor.run { self.captureSession }
+//            
+//            await withCheckedContinuation { continuation in
+//                sessionQueue.async {
+//                    
+//                    continuation.resume()
+//                }
+//            }
+//            
+//            
+//        }
     }
     
     open func stopTimer() {
@@ -99,7 +101,7 @@ class FaceCameraView: UIView {
             }
         }
     }
-//    
+    
     private func setupPreview() {
         previewLayer.videoGravity = .resizeAspectFill
         layer.addSublayer(previewLayer)
