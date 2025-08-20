@@ -49,24 +49,24 @@ class FaceCameraView: UIView {
     }
     
     func startTimer() {
-        Task.detached {
-            await self.captureSession.startRunning()
-        }
-        self.setupTimer()
-//        Task { [weak self] in
-//            guard let self = self else { return }
-//            
-//            let session = await MainActor.run { self.captureSession }
-//            
-//            await withCheckedContinuation { continuation in
-//                sessionQueue.async {
-//                    
-//                    continuation.resume()
-//                }
-//            }
-//            
-//            
+//        Task.detached {
+//            await self.captureSession.startRunning()
 //        }
+//        self.setupTimer()
+        
+        Task { [weak self] in
+            guard let self = self else { return }
+            
+            let session = await MainActor.run { self.captureSession }
+            
+            await withCheckedContinuation { continuation in
+                sessionQueue.async {
+                    session.startRunning()
+                    continuation.resume()
+                }
+            }
+            setupTimer()
+        }
     }
     
     open func stopTimer() {
