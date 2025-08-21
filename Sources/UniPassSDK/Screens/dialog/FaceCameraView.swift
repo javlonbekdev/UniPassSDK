@@ -49,11 +49,6 @@ class FaceCameraView: UIView {
     }
     
     func startTimer() {
-//        Task.detached {
-//            await self.captureSession.startRunning()
-//        }
-//        self.setupTimer()
-        
         Task { [weak self] in
             guard let self = self else { return }
             
@@ -80,12 +75,14 @@ class FaceCameraView: UIView {
     }
     
     func setupTimer() {
+        print("setup timer")
         self.timer = Timer.scheduledTimer(withTimeInterval: 0.4, repeats: true) { _ in // change from 0.2 to 0.4
             DispatchQueue.main.async { [weak self] in
                 guard let self = self else { return }
                 
                 self.captureSession.isRunning ? self.attendance?() : ()
                 self.update?(self.faceRect.width * self.faceRect.height, self.headStatus)
+                print("update called")
             }
         }
     }
@@ -136,80 +133,137 @@ class FaceCameraView: UIView {
 extension FaceCameraView: AVCapturePhotoCaptureDelegate, @preconcurrency AVCaptureVideoDataOutputSampleBufferDelegate {
     
     func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
+
+            guard let imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
+                return
+            }
+            let borderHandler = VNImageRequestHandler(cvPixelBuffer: imageBuffer, orientation: .leftMirrored)
             
-        guard let imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
-        
-        let faceDetectionRequest = VNDetectFaceLandmarksRequest { [weak self] request, error in
-            DispatchQueue.main.async {
-                self?.handleFaceDetectionResults(request)
+            let faceDetectionRequest = VNDetectFaceLandmarksRequest(completionHandler: { (request: VNRequest, error: Error?) in
+                DispatchQueue.main.async {
+                    self.faceLayers.forEach({ drawing in drawing.removeFromSuperlayer() })
+                    
+                    let copyRect = self.faceRectLayerConverted
+                    if let observations = request.results as? [VNFaceObservation] {
+                        self.handleFaceDetectionObservations(observations: observations, buffer: sampleBuffer)
+                    }
+                    if copyRect == self.faceRectLayerConverted {
+                        self.cropImage = nil
+                    }
+                }
+            })
+            
+            let imageHandler = VNImageRequestHandler(cvPixelBuffer: imageBuffer, orientation: .up, options: [:])
+            let request = VNDetectFaceRectanglesRequest { (request, error) in
+                if let results = request.results as? [VNFaceObservation], let face = results.first {
+                    guard let imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
+                        return
+                    }
+                    let ciImage = CIImage(cvPixelBuffer: imageBuffer)
+                    
+                    // Convert CIImage to UIImage for further processing
+                    let context = CIContext()
+                    if let cgImage = context.createCGImage(ciImage, from: ciImage.extent) {
+                        let image = UIImage(cgImage: cgImage)
+                        self.photo = image
+                        self.extractFace(from: image, observation: face)
+                    }
+                }
+            }
+            
+            do {
+                try borderHandler.perform([faceDetectionRequest])
+                try imageHandler.perform([request])
+            } catch {
+                print(error.localizedDescription)
             }
         }
         
-        let imageHandler = VNImageRequestHandler(cvPixelBuffer: imageBuffer, orientation: .leftMirrored)
-        
-        do {
-            try imageHandler.perform([faceDetectionRequest])
-        } catch {
-            print("Vision error: \(error)")
+        func handleFaceDetectionObservations(observations: [VNFaceObservation], buffer: CMSampleBuffer) {
+            // Oldin yuz qatlamlarini tozalaymiz
+            faceLayers.forEach({ $0.removeFromSuperlayer() })
+            
+            if let observation = observations.filter({ $0.boundingBox.width * $0.boundingBox.height > 0.03 }).first {
+                print(observation.boundingBox.width * observation.boundingBox.height)
+                faceRect = observation.boundingBox
+
+                // Yuqori / Pastga / Chap / O‘ng burilishlarni tekshirish
+                if let yaw = observation.yaw?.floatValue, yaw < -0.15 || yaw > 0.15 { // expanded to 0.05
+                    headStatus = .leftRight
+                } else if let roll = observation.roll?.floatValue, roll < 1.4 || roll > 1.75 { // expanded to 0.1
+                    headStatus = .rotate
+                } else if pitchResult(observation) {
+                    headStatus = .upDown
+                } else {
+                    headStatus = .normal
+                }
+
+                // Yuzni ekrandagi joylashuvini hisoblash
+                let faceRectConverted = previewLayer.layerRectConverted(fromMetadataOutputRect: observation.boundingBox)
+                    
+
+                // Yangi `CAShapeLayer` yaratish
+                let faceRectPath = CGPath(rect: faceRectConverted, transform: nil)
+                let faceLayer = CAShapeLayer()
+                faceLayer.path = faceRectPath
+                faceLayer.fillColor = UIColor.clear.cgColor
+                faceLayer.strokeColor = UIColor.yellow.cgColor
+
+                // Qo'shish
+                DispatchQueue.main.async {
+                    self.faceLayers.append(faceLayer)
+                    self.layer.addSublayer(faceLayer)  // Yuz qatlami
+                      // Matn (UILabel)
+                }
+                
+                faceRectLayerConverted = faceRectConverted
+            }
         }
-    }
-    
-    private func handleFaceDetectionResults(_ request: VNRequest) {
-        // UI update'lar main thread'da
-        faceLayers.forEach { $0.removeFromSuperlayer() }
         
-        if let observations = request.results as? [VNFaceObservation] {
-            processObservations(observations)
-        }
-    }
-    
-    private func processObservations(_ observations: [VNFaceObservation]) {
-        guard let observation = observations.first(where: { $0.boundingBox.width * $0.boundingBox.height > 0.03 }) else { return }
-        
-        faceRect = observation.boundingBox
-        
-        // Head status calculation
-        if let yaw = observation.yaw?.floatValue, abs(yaw) > 0.15 {
-            headStatus = .leftRight
-        } else if let roll = observation.roll?.floatValue, roll < 1.4 || roll > 1.75 {
-            headStatus = .rotate
-        } else if pitchResult(observation) {
-            headStatus = .upDown
-        } else {
-            headStatus = .normal
+        func extractFace(from image: UIImage, observation: VNFaceObservation) {
+            guard let cgImage = image.cgImage else { return }
+
+            let boundingBox = observation.boundingBox
+
+            let width = CGFloat(cgImage.width)
+            let height = CGFloat(cgImage.height)
+
+            let rect = CGRect(
+                x: boundingBox.origin.x * width,
+                y: (1 - boundingBox.origin.y - boundingBox.height) * height,
+                width: boundingBox.width * width,
+                height: boundingBox.height * height
+            )
+
+            if let croppedCGImage = cgImage.cropping(to: rect) {
+                let faceImage = UIImage(cgImage: croppedCGImage)
+                
+                DispatchQueue.main.async { self.cropImage = faceImage  }
+            }
         }
         
-        updateFaceLayer(observation)
-    }
-    
-    private func updateFaceLayer(_ observation: VNFaceObservation) {
-        let faceRectConverted = previewLayer.layerRectConverted(fromMetadataOutputRect: observation.boundingBox)
-        faceRectLayerConverted = faceRectConverted
+        func pitchResult(_ observation: VNFaceObservation) -> Bool {
+            if let landmarks = observation.landmarks,
+               let nose = landmarks.nose,
+               let leftEye = landmarks.leftEye,
+               let rightEye = landmarks.rightEye {
+
+                let noseY = averageY(of: nose.normalizedPoints)
+                let eyeY = (averageY(of: leftEye.normalizedPoints) + averageY(of: rightEye.normalizedPoints)) / 2.0
+
+                let deltaY = noseY - eyeY
+
+                if deltaY > -0.02 && deltaY < 0.02 { // expanded to 0.01
+                    return false
+                } else {
+                    return true
+                }
+            }
+            return true
+        }
         
-        let faceLayer = CAShapeLayer()
-        faceLayer.path = CGPath(rect: faceRectConverted, transform: nil)
-        faceLayer.fillColor = UIColor.clear.cgColor
-        faceLayer.strokeColor = UIColor.yellow.cgColor
-        
-        faceLayers.append(faceLayer)
-        layer.addSublayer(faceLayer)
-    }
-    
-    private func pitchResult(_ observation: VNFaceObservation) -> Bool {
-        guard let landmarks = observation.landmarks,
-              let nose = landmarks.nose,
-              let leftEye = landmarks.leftEye,
-              let rightEye = landmarks.rightEye else { return true }
-        
-        let noseY = averageY(of: nose.normalizedPoints)
-        let eyeY = (averageY(of: leftEye.normalizedPoints) + averageY(of: rightEye.normalizedPoints)) / 2.0
-        let deltaY = noseY - eyeY
-        
-        return !(deltaY > -0.02 && deltaY < 0.02)
-    }
-    
-    private func averageY(of points: [CGPoint]) -> CGFloat {
-        guard !points.isEmpty else { return 0 }
-        return points.map { $0.y }.reduce(0, +) / CGFloat(points.count)
-    }
+        func averageY(of points: [CGPoint]) -> CGFloat {
+            guard !points.isEmpty else { return 0 }
+            return points.map { $0.y }.reduce(0, +) / CGFloat(points.count)
+        }
 }
