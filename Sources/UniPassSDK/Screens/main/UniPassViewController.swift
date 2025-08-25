@@ -20,6 +20,7 @@ open class UniPassViewController: UIViewController {
     // MARK: - Lifecycle
     open override func viewDidLoad() {
         super.viewDidLoad()
+        view.backgroundColor = .clear
         setupUI()
         setupBindings()
         presentFaceDialog()
@@ -27,7 +28,6 @@ open class UniPassViewController: UIViewController {
     
     // MARK: - Setup Methods
     private func setupUI() {
-        view.backgroundColor = .systemBackground
         view.addSubview(activity)
         activity.snp.makeConstraints { make in
             make.edges.equalToSuperview()

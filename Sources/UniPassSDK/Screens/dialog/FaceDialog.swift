@@ -25,7 +25,7 @@ open class FaceDialog: UIViewController {
     
     open override func viewDidLoad() {
         super.viewDidLoad()
-        preferredContentSize = UIScreen.main.bounds.size
+//        preferredContentSize = UIScreen.main.bounds.size
         
         view.addSubview(subview)
         subview.snp.makeConstraints { $0.edges.equalToSuperview() }

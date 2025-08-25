@@ -52,14 +52,27 @@ struct GenerateTokenResponse: Codable {
 
 // MARK: - ViewModel States
 enum UniPassViewState: Equatable {
-    static func == (lhs: UniPassViewState, rhs: UniPassViewState) -> Bool {
-        lhs == rhs
-    }
-    
     case idle
     case loading
     case success(VerifyIdentityResponse)
     case error(String)
+    
+    static func == (lhs: UniPassViewState, rhs: UniPassViewState) -> Bool {
+        switch (lhs, rhs) {
+        case (.idle, .idle), (.loading, .loading):
+            return true
+        case let (.success(lhsResponse), .success(rhsResponse)):
+            return lhsResponse.requestId == rhsResponse.requestId &&
+            lhsResponse.clientId == rhsResponse.clientId &&
+            lhsResponse.resultToken == rhsResponse.resultToken &&
+            lhsResponse.authenticationCode == rhsResponse.authenticationCode &&
+            lhsResponse.description == rhsResponse.description
+        case let (.error(lhsMessage), .error(rhsMessage)):
+            return lhsMessage == rhsMessage
+        default:
+            return false
+        }
+    }
 }
 
 // MARK: - UniPassViewModel
