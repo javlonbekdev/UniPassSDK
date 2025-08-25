@@ -127,6 +127,10 @@ class FaceCameraView: UIView {
             }
         }
     }
+    
+    deinit {
+        print("camera view deinit")
+    }
 }
 
 

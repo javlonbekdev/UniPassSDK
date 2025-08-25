@@ -31,9 +31,14 @@ open class FaceDialog: UIViewController {
         subview.snp.makeConstraints { $0.edges.equalToSuperview() }
         
         subview.completion = { [weak self] image in
+            self?.subview.cameraView.stopTimer()
             self?.dismiss(animated: true)
             guard let image else { return }
             self?.completion?(image)
         }
+    }
+    
+    deinit {
+        print("dialog deinit")
     }
 }
