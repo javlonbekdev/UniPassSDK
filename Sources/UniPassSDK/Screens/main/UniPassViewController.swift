@@ -12,7 +12,7 @@ import Combine
 open class UniPassViewController: UIViewController {
     
     // MARK: - Properties
-    open var model: GenerateTokenResponse?
+    var model: GenerateTokenResponse?
     private let viewModel = UniPassViewModel()
     private let activity = CustomActivityView()
     private var cancellables = Set<AnyCancellable>()
@@ -37,6 +37,10 @@ open class UniPassViewController: UIViewController {
         if openDialog { return }
         presentFaceDialog()
         openDialog = true
+    }
+    
+    open func modelCreate(clientToken: String, clientID: String) {
+        model = GenerateTokenResponse(clientToken: clientToken, clientID: clientID)
     }
     
     // MARK: - Setup Methods

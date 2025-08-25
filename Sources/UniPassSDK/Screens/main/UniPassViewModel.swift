@@ -44,9 +44,8 @@ struct VerifyIdentityResponse: Codable {
     }
 }
 
-public struct GenerateTokenResponse: Codable {
+struct GenerateTokenResponse: Codable {
     let clientToken: String
-    let tokenType: String
     let clientID: String
 }
 
@@ -102,7 +101,7 @@ class UniPassViewModel: ObservableObject {
         
         // Bu yerda PINFL va profile_id ni olish kerak
         // Hozircha test uchun static qiymatlar
-        let pinfl = "12345678901234" // Bu qiymat real loyihada foydalanuvchidan olinishi kerak
+        let pinfl = "53101006910019" // Bu qiymat real loyihada foydalanuvchidan olinishi kerak
         let profileId = 25 // Bu qiymat ham real loyihada dynamic bo'lishi kerak
         
         verifyIdentity(
