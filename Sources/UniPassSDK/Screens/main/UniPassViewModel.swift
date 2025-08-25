@@ -44,7 +44,7 @@ struct VerifyIdentityResponse: Codable {
     }
 }
 
-struct GenerateTokenResponse: Codable {
+public struct GenerateTokenResponse: Codable {
     let clientToken: String
     let tokenType: String
     let clientID: String

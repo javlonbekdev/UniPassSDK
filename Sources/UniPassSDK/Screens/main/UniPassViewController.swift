@@ -12,11 +12,10 @@ import Combine
 open class UniPassViewController: UIViewController {
     
     // MARK: - Properties
-    var model: GenerateTokenResponse?
+    open var model: GenerateTokenResponse?
     private let viewModel = UniPassViewModel()
     private let activity = CustomActivityView()
     private var cancellables = Set<AnyCancellable>()
-    private var presentView = false
     
     // MARK: - Lifecycle
     open override func viewDidLoad() {
@@ -26,6 +25,7 @@ open class UniPassViewController: UIViewController {
         setupBindings()
     }
     var openDialog: Bool = false
+    private var presentView = false
     
     open override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
