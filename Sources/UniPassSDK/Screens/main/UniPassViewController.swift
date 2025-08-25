@@ -20,9 +20,13 @@ open class UniPassViewController: UIViewController {
     // MARK: - Lifecycle
     open override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .clear
+        view.backgroundColor = .black.withAlphaComponent(0.1)
         setupUI()
         setupBindings()
+    }
+    
+    open override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
         presentFaceDialog()
     }
     
