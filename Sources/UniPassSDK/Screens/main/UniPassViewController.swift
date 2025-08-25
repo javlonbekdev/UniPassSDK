@@ -16,6 +16,7 @@ open class UniPassViewController: UIViewController {
     private let viewModel = UniPassViewModel()
     private let activity = CustomActivityView()
     private var cancellables = Set<AnyCancellable>()
+    private var presentView = false
     
     // MARK: - Lifecycle
     open override func viewDidLoad() {
@@ -28,6 +29,11 @@ open class UniPassViewController: UIViewController {
     
     open override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        if presentView {
+            dismiss(animated: true)
+            presentView = false
+        }
+        presentView = true
         if openDialog { return }
         presentFaceDialog()
         openDialog = true
@@ -67,6 +73,7 @@ open class UniPassViewController: UIViewController {
         let dialog = FaceDialog()
         dialog.completion = { [weak self] image in
             guard let self = self else { return }
+            self.presentView = true
             self.viewModel.login(with: image, model: self.model)
         }
         present(dialog, animated: true)
