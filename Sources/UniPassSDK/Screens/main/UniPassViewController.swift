@@ -9,7 +9,7 @@ import UIKit
 import SnapKit
 import Combine
 
-class UniPassViewController: UIViewController {
+open class UniPassViewController: UIViewController {
     
     // MARK: - Properties
     var model: GenerateTokenResponse?
@@ -18,7 +18,7 @@ class UniPassViewController: UIViewController {
     private var cancellables = Set<AnyCancellable>()
     
     // MARK: - Lifecycle
-    override func viewDidLoad() {
+    open override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
         setupBindings()
