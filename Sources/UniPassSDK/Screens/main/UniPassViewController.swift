@@ -24,10 +24,13 @@ open class UniPassViewController: UIViewController {
         setupUI()
         setupBindings()
     }
+    var openDialog: Bool = false
     
     open override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        if openDialog { return }
         presentFaceDialog()
+        openDialog = true
     }
     
     // MARK: - Setup Methods
@@ -61,15 +64,12 @@ open class UniPassViewController: UIViewController {
     }
     
     private func presentFaceDialog() {
-        print("present start")
         let dialog = FaceDialog()
-        dialog.modalPresentationStyle = .fullScreen
         dialog.completion = { [weak self] image in
             guard let self = self else { return }
             self.viewModel.login(with: image, model: self.model)
         }
         present(dialog, animated: true)
-        print("present end")
     }
     
     // MARK: - State Handling
